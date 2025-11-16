@@ -2,13 +2,36 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtWebEngine
+
 import org.kde.kirigami as Kirigami
+import org.kde.config as Config
+
 
 Kirigami.ApplicationWindow {
     id: root
-    title: tabsModel.tabs.get(tabsModel.currentIndex) ? tabsModel.tabs.get(tabsModel.currentIndex).title || "Wave Browser" : "Wave Browser"
+    title: currentTab ? currentTab.title || "Wave Browser" : "Wave Browser"
     width: 1024
     height: 768
+
+    property QtObject defaultProfile: WebEngineProfile {
+        offTheRecord: false
+        storageName: "Profile"
+        Component.onCompleted: {
+            let fullVersionList = defaultProfile.clientHints.fullVersionList;
+            fullVersionList["WaveBrowser"] = "1.0";
+            defaultProfile.clientHints.fullVersionList = fullVersionList;
+        }
+    }
+
+    property QtObject otrProfile: WebEngineProfile {
+        offTheRecord: true
+    }
+
+    property Item currentTab: tabsModel.tabs.get(tabsModel.currentIndex) ? tabsModel.tabs.get(tabsModel.currentIndex) : null
+
+    Config.WindowStateSaver {
+        configGroupName: "main-window"
+    }
 
     TabsModel {
         id: tabsModel
@@ -42,7 +65,7 @@ Kirigami.ApplicationWindow {
                 id: addressBar
                 Layout.fillWidth: true
                 placeholderText: "Enter URL or search term"
-                text: tabsModel.tabs.get(tabsModel.currentIndex) ? tabsModel.tabs.get(tabsModel.currentIndex).url : ""
+                text: root.currentTab ? root.currentTab.url : ""
                 onAccepted: {
                     let url = text;
                     if (!url.startsWith("http://") && !url.startsWith("https://")) {

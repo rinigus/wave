@@ -4,6 +4,7 @@ import QtWebEngine
 WebEngineView {
     id: webView
     focus: true
+    profile: root.defaultProfile
 
     property bool readyForSnapshot: false
 
