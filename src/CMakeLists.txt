@@ -10,6 +10,8 @@ ecm_add_qml_module(wave
 ecm_target_qml_sources(wave
     SOURCES
         qml/Main.qml
+        qml/WebView.qml
+        qml/TabsModel.qml
 )
 
 target_link_libraries(wave PRIVATE
