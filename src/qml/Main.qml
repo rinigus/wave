@@ -6,24 +6,28 @@ import QtWebEngine
 import org.kde.kirigami as Kirigami
 import org.kde.config as Config
 
+import org.sailfishos.wave.core as Core
+
 
 Kirigami.ApplicationWindow {
-    id: root
+    id: webBrowser
     title: currentTab ? currentTab.title || "Wave Browser" : "Wave Browser"
     width: 1024
     height: 768
 
+    property WebView currentView: webViews.currentView
+
+    property QtObject userAgent: Core.UserAgent {
+    }
+
     property QtObject defaultProfile: WebEngineProfile {
+        httpUserAgent: webBrowser.userAgent.userAgent
         offTheRecord: false
         storageName: "Profile"
-        Component.onCompleted: {
-            let fullVersionList = defaultProfile.clientHints.fullVersionList;
-            fullVersionList["WaveBrowser"] = "1.0";
-            defaultProfile.clientHints.fullVersionList = fullVersionList;
-        }
     }
 
     property QtObject otrProfile: WebEngineProfile {
+        httpUserAgent: webBrowser.userAgent.userAgent
         offTheRecord: true
     }
 
@@ -42,15 +46,20 @@ Kirigami.ApplicationWindow {
         anchors.fill: parent
         currentIndex: tabsModel.currentIndex
 
+        property WebView currentView: repeater.count > currentIndex ? repeater.itemAt(currentIndex) : null
+
         Repeater {
+            id: repeater
             model: tabsModel.tabs
             WebView {
-                url: model.url
                 onTitleChanged: {
                     tabsModel.tabs.setProperty(index, "title", title);
                 }
                 onUrlChanged: {
                     tabsModel.tabs.setProperty(index, "url", url.toString());
+                }
+                Component.onCompleted: {
+                    url = model.url;
                 }
             }
         }
@@ -65,13 +74,13 @@ Kirigami.ApplicationWindow {
                 id: addressBar
                 Layout.fillWidth: true
                 placeholderText: "Enter URL or search term"
-                text: root.currentTab ? root.currentTab.url : ""
+                text: webBrowser.currentTab ? webBrowser.currentTab.url : ""
                 onAccepted: {
                     let url = text;
                     if (!url.startsWith("http://") && !url.startsWith("https://")) {
                         url = "https://" + url;
                     }
-                    tabsModel.tabs.setProperty(tabsModel.currentIndex, "url", url);
+                    webBrowser.currentView.url = url;
                 }
             }
 
@@ -103,8 +112,8 @@ Kirigami.ApplicationWindow {
 
     QQC2.Drawer {
         id: tabsSheet
-        width: Math.min(root.width, root.height) / 3 * 2
-        height: root.height
+        width: Math.min(webBrowser.width, webBrowser.height) / 3 * 2
+        height: webBrowser.height
 
         signal requestSnapshots()
         onOpened: requestSnapshots()
@@ -158,7 +167,7 @@ Kirigami.ApplicationWindow {
                             id: shaderItem
                             live: false
                             anchors.fill: parent
-                            sourceRect: Qt.rect(0, 0, root.width, root.height)
+                            sourceRect: Qt.rect(0, 0, webBrowser.width, webBrowser.height)
                             visible: false
 
                             sourceItem: webViews.children[model.index]
@@ -178,8 +187,8 @@ Kirigami.ApplicationWindow {
                                     sourceItem.readyForSnapshot = false;
                                     shaderItem.grabToImage(function(result) {
                                         tabImage.source = result.url;
-                                    }, Qt.size(Math.round(root.width * 0.3),
-                                            Math.round(root.height * 0.3)));
+                                    }, Qt.size(Math.round(webBrowser.width * 0.3),
+                                            Math.round(webBrowser.height * 0.3)));
                                 }
                             }
                         }

@@ -1,3 +1,5 @@
+add_subdirectory(lib)
+
 add_executable(wave
     main.cpp
 )
@@ -21,6 +23,8 @@ target_link_libraries(wave PRIVATE
     Qt::Qml
     Qt::WebEngineCore
     Qt::WebEngineQuick
+    WaveCore
+    WaveCoreplugin
 )
 
 install(TARGETS wave ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})

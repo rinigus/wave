@@ -1,10 +1,11 @@
 import QtQuick
 import QtWebEngine
 
+
 WebEngineView {
     id: webView
     focus: true
-    profile: root.defaultProfile
+    profile: webBrowser.defaultProfile
 
     property bool readyForSnapshot: false
 
