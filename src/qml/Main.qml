@@ -70,6 +70,32 @@ Kirigami.ApplicationWindow {
             anchors.fill: parent
             spacing: Kirigami.Units.smallSpacing
 
+            QQC2.ToolButton {
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 2
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2
+
+                enabled: webBrowser.currentView ? webBrowser.currentView.canGoBack : false
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    height: Kirigami.Units.gridUnit * 1.25
+                    width: Kirigami.Units.gridUnit * 1.25
+                    color: "transparent"
+                    border.color: Kirigami.Theme.textColor
+                    border.width: 1
+                    radius: Kirigami.Units.gridUnit / 5
+
+                    QQC2.Label {
+                        anchors.centerIn: parent
+                        text: "<"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+
+                onClicked: webBrowser.currentView.goBack()
+            }
+
             QQC2.TextField {
                 id: addressBar
                 Layout.fillWidth: true
