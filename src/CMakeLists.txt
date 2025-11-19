@@ -11,9 +11,27 @@ ecm_add_qml_module(wave
 
 ecm_target_qml_sources(wave
     SOURCES
+        qml/Bookmarks.qml
+        qml/DownloadQuestion.qml
+        qml/Downloads.qml
+        qml/ErrorHandler.qml
+        qml/FindInPageBar.qml
+        qml/HistorySheet.qml
+        qml/History.qml
+        qml/ListWebView.qml
         qml/Main.qml
+        qml/Navigation.qml
+        qml/NavigationEntrySheet.qml
+        qml/NewTabQuestion.qml
+        qml/PermissionQuestion.qml
+        qml/Questions.qml
+        qml/ShareSheet.qml
+        qml/Tabs.qml
+        qml/UrlDelegate.qml
         qml/WebView.qml
-        qml/TabsModel.qml
+        qml/WebDeveloperTools.qml
+
+        regex-weburl/RegexWebUrl.js
 )
 
 target_link_libraries(wave PRIVATE
@@ -23,6 +41,10 @@ target_link_libraries(wave PRIVATE
     Qt::Qml
     Qt::WebEngineCore
     Qt::WebEngineQuick
+    KF6::ConfigCore
+    KF6::ConfigGui
+    KF6::I18n
+    KF6::Notifications
     WaveCore
     WaveCoreplugin
 )

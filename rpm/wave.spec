@@ -63,3 +63,4 @@ Minimal Web browser for testing
 %files
 
 %{_bindir}/%{name}
+%{_kf6_datadir}/config.kcfg/%{name}settings.kcfg
