@@ -11,6 +11,9 @@
 #include <QImage>
 #include <QPixmap>
 #include <QQmlApplicationEngine>
+#include <QQuickAsyncImageProvider>
+#include <QQuickImageResponse>
+#include <QSet>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QString>
@@ -21,6 +24,7 @@
 // and icons are added into the database using static methods,
 // engine has to be accessed via static property
 QQmlApplicationEngine *IconImageProvider::s_engine;
+QSet<QString> IconImageProvider::s_activeFetches;
 
 IconImageProvider::IconImageProvider(QQmlApplicationEngine *engine)
     : QQuickImageProvider(QQmlImageProviderBase::Image)
@@ -57,63 +61,71 @@ QString IconImageProvider::storeImage(const QString &iconSource)
         qWarning() << Q_FUNC_INFO << "Failed to execute SQL statement";
         qWarning() << query_check.lastQuery();
         qWarning() << query_check.lastError();
-        return iconSource; // as something is wrong
+        return iconSource;
     }
 
     if (query_check.next()) {
         // there is corresponding record in the database already
-        // no need to store it again
         return url;
     }
     query_check.finish();
 
-    // Store new icon
-    QQuickImageProvider *provider = dynamic_cast<QQuickImageProvider *>(s_engine->imageProvider(QStringLiteral("favicon")));
-    if (!provider) {
-        qWarning() << Q_FUNC_INFO << "Failed to load image provider" << url;
-        return iconSource; // as something is wrong
+    // Check if already fetching
+    if (s_activeFetches.contains(url)) {
+        return url;
     }
 
-    QByteArray data;
-    QBuffer buffer(&data);
-    buffer.open(QIODevice::WriteOnly);
-
-    const QSize szRequested;
-    const QString providerIconName = iconSource.mid(prefix_favicon.size());
-    switch (provider->imageType()) {
-    case QQmlImageProviderBase::Image: {
-        const QImage image = provider->requestImage(providerIconName, nullptr, szRequested);
-        if (!image.save(&buffer, "PNG")) {
-            qWarning() << Q_FUNC_INFO << "Failed to save image" << url;
-            return iconSource; // as something is wrong
-        }
-        break;
-    }
-    case QQmlImageProviderBase::Pixmap: {
-        const QPixmap image = provider->requestPixmap(providerIconName, nullptr, szRequested);
-        if (!image.save(&buffer, "PNG")) {
-            qWarning() << Q_FUNC_INFO << "Failed to save pixmap" << url;
-            return iconSource; // as something is wrong
-        }
-        break;
-    }
-    default:
-        qWarning() << Q_FUNC_INFO << "Unsupported image provider" << provider->imageType();
-        return iconSource; // as something is wrong
-    }
-
-    QSqlQuery query_write(BrowserManager::instance()->databaseManager()->database());
-    query_write.prepare(QStringLiteral("INSERT INTO icons(url, icon) VALUES (:url, :icon)"));
-    query_write.bindValue(QStringLiteral(":url"), url);
-    query_write.bindValue(QStringLiteral(":icon"), data);
-    if (!query_write.exec()) {
-        qWarning() << Q_FUNC_INFO << "Failed to execute SQL statement";
-        qWarning() << query_write.lastQuery();
-        qWarning() << query_write.lastError();
-        return iconSource; // as something is wrong
-    }
+    // Start async fetch
+    s_activeFetches.insert(url);
+    fetchAndStoreIcon(url, iconSource);
 
     return url;
+}
+
+void IconImageProvider::fetchAndStoreIcon(const QString &url, const QString &iconSource)
+{
+    const QLatin1String prefix_favicon = QLatin1String("image://favicon/");
+    const QString providerIconName = iconSource.mid(prefix_favicon.size());
+
+    // Store new icon
+    QQuickAsyncImageProvider *provider = dynamic_cast<QQuickAsyncImageProvider *>(s_engine->imageProvider(QStringLiteral("favicon")));
+    if (!provider) {
+        qWarning() << Q_FUNC_INFO << "Failed to load image provider" << url;
+        s_activeFetches.remove(url);
+        return;
+    }
+
+    const QSize szRequested;
+
+    // Try ImageResponse
+    QQuickImageResponse *response = provider->requestImageResponse(providerIconName, szRequested);
+    QObject::connect(response, &QQuickImageResponse::finished, [response, url]() {
+        const QImage image = response->textureFactory()->image();
+
+        if (!image.isNull()) {
+            QByteArray data;
+            QBuffer buffer(&data);
+            buffer.open(QIODevice::WriteOnly);
+            if (image.save(&buffer, "PNG")) {
+                QSqlQuery query_write(BrowserManager::instance()->databaseManager()->database());
+                query_write.prepare(QStringLiteral("INSERT INTO icons(url, icon) VALUES (:url, :icon)"));
+                query_write.bindValue(QStringLiteral(":url"), url);
+                query_write.bindValue(QStringLiteral(":icon"), data);
+                if (!query_write.exec()) {
+                    qWarning() << Q_FUNC_INFO << "Failed to execute SQL statement";
+                    qWarning() << query_write.lastQuery();
+                    qWarning() << query_write.lastError();
+                }
+            } else {
+                qWarning() << Q_FUNC_INFO << "Failed to save image" << url;
+            }
+        } else {
+            qWarning() << Q_FUNC_INFO << "Failed to get image" << url;
+        }
+
+        delete response;
+        s_activeFetches.remove(url);
+    });
 }
 
 QImage IconImageProvider::requestImage(const QString &id, QSize *size, const QSize & /*requestedSize*/)

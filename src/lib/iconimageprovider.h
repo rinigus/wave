@@ -7,6 +7,7 @@
 #define ICONIMAGEPROVIDER_H
 
 #include <QQuickImageProvider>
+#include <QSet>
 
 
 class QQmlApplicationEngine;
@@ -25,7 +26,10 @@ public:
     static QString providerId();
 
 private:
+    static void fetchAndStoreIcon(const QString &url, const QString &iconSource);
+
     static QQmlApplicationEngine *s_engine;
+    static QSet<QString> s_activeFetches;
 };
 
 #endif // ICONIMAGEPROVIDER_H
