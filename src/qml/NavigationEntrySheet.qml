@@ -157,8 +157,9 @@ Controls.Drawer {
     }
 
     Connections {
-        target: rootPage
+        target: webBrowser
         function onCurrentWebViewChanged() {
+            console.log("AAA")
             if (overlay.opened) {
                 updateOnOpened();
             }
