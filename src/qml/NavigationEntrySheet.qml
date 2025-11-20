@@ -144,7 +144,8 @@ Controls.Drawer {
         }
     }
 
-    onOpened: {
+    function updateOnOpened() {
+        if (!currentWebView) return;
         // check if the drawer was just slightly slided
         if (openedState) return;
         urlInput.text = currentWebView.requestedUrl;
@@ -155,8 +156,23 @@ Controls.Drawer {
         listView.positionViewAtBeginning();
     }
 
+    Connections {
+        target: rootPage
+        function onCurrentWebViewChanged() {
+            if (overlay.opened) {
+                updateOnOpened();
+            }
+        }
+    }
+
+    onOpened: {
+        updateOnOpened();
+    }
+
     onClosed: {
         openedState = false;
-        currentWebView.forceActiveFocus();
+        if (currentWebView) {
+            currentWebView.forceActiveFocus();
+        }
     }
 }
