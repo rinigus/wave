@@ -125,7 +125,7 @@ Controls.Drawer {
                 showRemove: false
 
                 icon {
-                    name: model.icon && model.icon.length > 0 ? model.icon : "internet-services"
+                    name: model.iconName.length > 0 ? model.iconName : "internet-services"
                     width: Kirigami.Units.largeSpacing * 3
                     height: Kirigami.Units.largeSpacing * 3
                 }

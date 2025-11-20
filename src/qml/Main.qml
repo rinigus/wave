@@ -286,17 +286,6 @@ Kirigami.ApplicationWindow {
                 }
             },
             Kirigami.Action {
-                id: addHomeScreenAction
-                icon.name: "list-add"
-                text: i18nc("@action:inmenu", "Add to Homescreen")
-                enabled: !webAppCreator.exists
-                onTriggered: {
-                    webAppCreator.createDesktopFile(currentWebView.title,
-                                                           currentWebView.url,
-                                                           currentWebView.icon)
-                }
-            },
-            Kirigami.Action {
                 icon.name: "application-x-object"
                 text: i18nc("@action:inmenu", "Open in App")
                 onTriggered: {
@@ -353,14 +342,6 @@ Kirigami.ApplicationWindow {
                 onTriggered: {
                     currentWebView.userAgent.isMobile = !currentWebView.userAgent.isMobile;
                 }
-            },
-            Kirigami.Action {
-                icon.name: currentWebView.readerMode ? "view-readermode-active" : "view-readermode"
-                text: i18nc("@action:inmenu", "Reader Mode")
-                checkable: true
-                checked: currentWebView.readerMode
-                onTriggered: currentWebView.readerModeSwitch()
-
             },
             Kirigami.Action {
                 icon.name: "edit-select-text"

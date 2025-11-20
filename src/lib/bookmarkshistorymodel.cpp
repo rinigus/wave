@@ -71,7 +71,7 @@ void BookmarksHistoryModel::setQuery()
         return;
 
     QString command;
-    const auto b = QStringLiteral(u"SELECT rowid AS id, url, title, icon, :now - lastVisited AS lastVisitedDelta, %1 AS bookmarked FROM %2 ");
+    const auto b = QStringLiteral(u"SELECT rowid AS id, url, title, icon as iconName, :now - lastVisited AS lastVisitedDelta, %1 AS bookmarked FROM %2 ");
     const QStringView filter = m_filter.isEmpty() ? QStringView() : QStringView(u"WHERE url LIKE '%' || :filter || '%' OR title LIKE '%' || :filter || '%'");
     const bool includeHistory = m_history && !(m_bookmarks && m_filter.isEmpty());
 
