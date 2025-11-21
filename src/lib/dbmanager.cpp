@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 #include "dbmanager.h"
-#include "iconimageprovider.h"
 
 #include <QDateTime>
 #include <QDebug>
@@ -197,20 +196,6 @@ bool DBManager::hasRecord(const QString &table, const QString &url) const
     return false;
 }
 
-void DBManager::updateIconRecord(const QString &table, const QString &url, const QString &iconSource)
-{
-    if (url.isEmpty())
-        return;
-
-    QSqlQuery query(m_database);
-    query.prepare(QStringLiteral("UPDATE %1 SET icon = :icon WHERE url = :url").arg(table));
-    query.bindValue(QStringLiteral(":url"), url);
-    query.bindValue(QStringLiteral(":icon"), iconSource);
-    execute(query);
-
-    Q_EMIT databaseTableChanged(table);
-}
-
 void DBManager::setLastVisitedRecord(const QString &table, const QString &url)
 {
     if (url.isEmpty())
@@ -260,11 +245,4 @@ void DBManager::updateLastVisited(const QString &url)
 {
     setLastVisitedRecord(QStringLiteral("bookmarks"), url);
     setLastVisitedRecord(QStringLiteral("history"), url);
-}
-
-void DBManager::updateIcon(const QString &url, const QString &iconSource)
-{
-    const QString updatedSource = IconImageProvider::storeImage(iconSource);
-    updateIconRecord(QStringLiteral("bookmarks"), url, updatedSource);
-    updateIconRecord(QStringLiteral("history"), url, updatedSource);
 }

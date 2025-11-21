@@ -6,7 +6,6 @@
 #include <KLocalizedString>
 
 #include "wavesettings.h"
-#include "iconimageprovider.h"
 
 int main(int argc, char *argv[])
 {
@@ -22,7 +21,6 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
-    engine.addImageProvider(IconImageProvider::providerId(), new IconImageProvider(&engine));
 
     engine.loadFromModule("org.sailfishos.wave", "Main");
 

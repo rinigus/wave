@@ -9,7 +9,6 @@ ecm_add_qml_module(WaveCore
         browsermanager.cpp
         dbmanager.cpp
         downloadmanager.cpp
-        iconimageprovider.cpp
         settingshelper.cpp
         sqlquerymodel.cpp
         tabsmodel.cpp
